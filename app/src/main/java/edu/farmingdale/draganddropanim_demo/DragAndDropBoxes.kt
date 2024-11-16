@@ -35,12 +35,19 @@ import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.draganddrop.DragAndDropTransferData
 import androidx.compose.ui.draganddrop.mimeTypes
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.Icon
 
 @Composable
 fun DragAndDropBoxes(modifier: Modifier = Modifier) {
@@ -85,12 +92,10 @@ fun DragAndDropBoxes(modifier: Modifier = Modifier) {
                         enter = scaleIn() + fadeIn(),
                         exit = scaleOut() + fadeOut()
                     ) {
-                        Text(
-                            text = "Right",
-                            fontSize = 40.sp,
-                            color = Color.Red,
-                            fontWeight = FontWeight.Bold,
-
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward, // Arrow icon
+                            contentDescription = "Arrow",
+                            tint = Color.Red, // Icon color
                             modifier = Modifier
                                 .fillMaxSize()
                                 .dragAndDropSource {
@@ -114,15 +119,28 @@ fun DragAndDropBoxes(modifier: Modifier = Modifier) {
         }
 
 
+        var rectOffsetX by remember { mutableStateOf(100f) }
+        var rectOffsetY by remember { mutableStateOf(100f) }
+
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(0.8f)
                 .background(Color.Red)
-
+                // Detect drag gestures for the rectangle
+                .pointerInput(Unit) {
+                    detectDragGestures { change, dragAmount ->
+                        change.consume() // Consume the gesture
+                        rectOffsetX += dragAmount.x
+                        rectOffsetY += dragAmount.y
+                    }
+                }
         ) {
-                drawCircle(Color.Green, radius = 50f, center = Offset(100f, 100f))
-       }
+            // Use the updated offset for the rectangle position
+            translate(left = rectOffsetX, top = rectOffsetY) {
+                drawRect(Color.Blue, size = Size(100f, 100f))
+            }
+        }}
     }
-}
+
 

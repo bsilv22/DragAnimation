@@ -21,6 +21,7 @@ class MainActivity : ComponentActivity() {
             DragAndDropAnim_DemoTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                    Greeting("Android", Modifier.padding(innerPadding))
+                    DragAndDropBoxes()
 
                 }
             }
