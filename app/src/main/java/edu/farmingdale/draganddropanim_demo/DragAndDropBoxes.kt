@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -57,7 +58,6 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 @Composable
 fun DragAndDropBoxes(modifier: Modifier = Modifier) {
     Column(modifier = Modifier.fillMaxSize()) {
-
         Row(
             modifier = modifier
                 .fillMaxWidth().weight(0.2f)
@@ -83,7 +83,6 @@ fun DragAndDropBoxes(modifier: Modifier = Modifier) {
                             target = remember {
                                 object : DragAndDropTarget {
                                     override fun onDrop(event: DragAndDropEvent): Boolean {
-
                                         dragBoxIndex = index
                                         return true
                                     }
@@ -98,9 +97,9 @@ fun DragAndDropBoxes(modifier: Modifier = Modifier) {
                         exit = scaleOut() + fadeOut()
                     ) {
                         Icon(
-                            imageVector = Icons.Default.ArrowForward, // Arrow icon
+                            imageVector = Icons.Default.ArrowForward,
                             contentDescription = "Arrow",
-                            tint = Color.Red, // Icon color
+                            tint = Color.Red,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .dragAndDropSource {
@@ -123,37 +122,69 @@ fun DragAndDropBoxes(modifier: Modifier = Modifier) {
             }
         }
 
-        var rectOffsetX by remember { mutableStateOf(200f) }
-        var rectOffsetY by remember { mutableStateOf(200f) }
-        var rotation by remember { mutableStateOf(0f) }
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .weight(0.8f)
+        ) {
+            var canvasWidth by remember { mutableStateOf(0f) }
+            var canvasHeight by remember { mutableStateOf(0f) }
 
-        LaunchedEffect(Unit) {
-            while(true) {
-                delay(16)
-                rotation += 2f
+            var rectOffsetX by remember { mutableStateOf(0f) }
+            var rectOffsetY by remember { mutableStateOf(0f) }
+            var rotation by remember { mutableStateOf(0f) }
+
+            LaunchedEffect(Unit) {
+                while(true) {
+                    delay(16)
+                    rotation += 2f
+                }
             }
-        }
 
-        Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(0.8f)
-                .background(Color.Red)
-                .pointerInput(Unit) {
-                    detectDragGestures { change, dragAmount ->
-                        change.consume()
-                        rectOffsetX += dragAmount.x
-                        rectOffsetY += dragAmount.y
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Red)
+                    .pointerInput(Unit) {
+                        detectDragGestures { change, dragAmount ->
+                            change.consume()
+                            rectOffsetX += dragAmount.x
+                            rectOffsetY += dragAmount.y
+                        }
+                    }
+            ) {
+                // Store canvas size for reset
+                canvasWidth = size.width
+                canvasHeight = size.height
+
+                // Initial center position
+                if (rectOffsetX == 0f && rectOffsetY == 0f) {
+                    rectOffsetX = size.width / 2 - 50f
+                    rectOffsetY = size.height / 2 - 50f
+                }
+
+                translate(rectOffsetX, rectOffsetY) {
+                    rotate(degrees = rotation, pivot = Offset(50f, 50f)) {
+                        drawRect(
+                            color = Color.Blue,
+                            topLeft = Offset(0f, 0f),
+                            size = Size(100f, 100f)
+                        )
                     }
                 }
-        ) {
-            translate(rectOffsetX, rectOffsetY) {
-                rotate(degrees = rotation, pivot = Offset(50f, 50f)) {
-                    drawRect(
-                        color = Color.Blue,
-                        topLeft = Offset(0f, 0f),
-                        size = Size(100f, 100f)
-                    )
+            }
+
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Button(
+                    onClick = {
+                        rectOffsetX = canvasWidth / 2 - 50f
+                        rectOffsetY = canvasHeight / 2 - 50f
+                    },
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text("Reset Position")
                 }
             }
         }
