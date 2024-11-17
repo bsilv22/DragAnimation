@@ -58,6 +58,9 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 @Composable
 fun DragAndDropBoxes(modifier: Modifier = Modifier) {
     Column(modifier = Modifier.fillMaxSize()) {
+        // Add state for animation direction
+        var animationDirection by remember { mutableStateOf("none") }
+
         Row(
             modifier = modifier
                 .fillMaxWidth().weight(0.2f)
@@ -84,6 +87,14 @@ fun DragAndDropBoxes(modifier: Modifier = Modifier) {
                                 object : DragAndDropTarget {
                                     override fun onDrop(event: DragAndDropEvent): Boolean {
                                         dragBoxIndex = index
+                                        // Set animation based on which box it was dropped in
+                                        animationDirection = when(index) {
+                                            0 -> "up"
+                                            1 -> "down"
+                                            2 -> "left"
+                                            3 -> "right"
+                                            else -> "none"
+                                        }
                                         return true
                                     }
                                 }
@@ -91,6 +102,20 @@ fun DragAndDropBoxes(modifier: Modifier = Modifier) {
                         ),
                     contentAlignment = Alignment.Center
                 ) {
+                    // Add text to show which box does what
+                    Text(
+                        text = when(index) {
+                            0 -> "Up"
+                            1 -> "Down"
+                            2 -> "Left"
+                            3 -> "Right"
+                            else -> ""
+                        },
+                        color = Color.Gray,
+                        fontSize = 10.sp,
+                        modifier = Modifier.align(Alignment.TopCenter)
+                    )
+
                     this@Row.AnimatedVisibility(
                         visible = index == dragBoxIndex,
                         enter = scaleIn() + fadeIn(),
@@ -133,6 +158,45 @@ fun DragAndDropBoxes(modifier: Modifier = Modifier) {
             var rectOffsetY by remember { mutableStateOf(0f) }
             var rotation by remember { mutableStateOf(0f) }
 
+            // Add animation offset states
+            var animationOffsetY by remember { mutableStateOf(0f) }
+            var animationOffsetX by remember { mutableStateOf(0f) }
+
+            // Animation effect based on direction
+            LaunchedEffect(animationDirection) {
+                when(animationDirection) {
+                    "up" -> {
+                        repeat(100) {
+                            delay(16)
+                            animationOffsetY -= 2f
+                        }
+                        animationOffsetY = 0f
+                    }
+                    "down" -> {
+                        repeat(100) {
+                            delay(16)
+                            animationOffsetY += 2f
+                        }
+                        animationOffsetY = 0f
+                    }
+                    "left" -> {
+                        repeat(100) {
+                            delay(16)
+                            animationOffsetX -= 2f
+                        }
+                        animationOffsetX = 0f
+                    }
+                    "right" -> {
+                        repeat(100) {
+                            delay(16)
+                            animationOffsetX += 2f
+                        }
+                        animationOffsetX = 0f
+                    }
+                }
+                animationDirection = "none"
+            }
+
             LaunchedEffect(Unit) {
                 while(true) {
                     delay(16)
@@ -152,17 +216,15 @@ fun DragAndDropBoxes(modifier: Modifier = Modifier) {
                         }
                     }
             ) {
-                // Store canvas size for reset
                 canvasWidth = size.width
                 canvasHeight = size.height
 
-                // Initial center position
                 if (rectOffsetX == 0f && rectOffsetY == 0f) {
                     rectOffsetX = size.width / 2 - 50f
                     rectOffsetY = size.height / 2 - 50f
                 }
 
-                translate(rectOffsetX, rectOffsetY) {
+                translate(rectOffsetX + animationOffsetX, rectOffsetY + animationOffsetY) {
                     rotate(degrees = rotation, pivot = Offset(50f, 50f)) {
                         drawRect(
                             color = Color.Blue,
