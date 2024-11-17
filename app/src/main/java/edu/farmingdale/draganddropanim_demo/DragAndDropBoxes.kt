@@ -2,6 +2,8 @@
 
 package edu.farmingdale.draganddropanim_demo
 
+import androidx.compose.ui.graphics.drawscope.rotate
+import kotlinx.coroutines.delay
 import android.content.ClipData
 import android.content.ClipDescription
 import androidx.compose.animation.AnimatedVisibility
@@ -48,6 +50,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.withTransform
 
 @Composable
 fun DragAndDropBoxes(modifier: Modifier = Modifier) {
@@ -118,29 +123,39 @@ fun DragAndDropBoxes(modifier: Modifier = Modifier) {
             }
         }
 
+        var rectOffsetX by remember { mutableStateOf(200f) }
+        var rectOffsetY by remember { mutableStateOf(200f) }
+        var rotation by remember { mutableStateOf(0f) }
 
-        var rectOffsetX by remember { mutableStateOf(100f) }
-        var rectOffsetY by remember { mutableStateOf(100f) }
+        LaunchedEffect(Unit) {
+            while(true) {
+                delay(16)
+                rotation += 2f
+            }
+        }
 
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(0.8f)
                 .background(Color.Red)
-                // Detect drag gestures for the rectangle
                 .pointerInput(Unit) {
                     detectDragGestures { change, dragAmount ->
-                        change.consume() // Consume the gesture
+                        change.consume()
                         rectOffsetX += dragAmount.x
                         rectOffsetY += dragAmount.y
                     }
                 }
         ) {
-            // Use the updated offset for the rectangle position
-            translate(left = rectOffsetX, top = rectOffsetY) {
-                drawRect(Color.Blue, size = Size(100f, 100f))
+            translate(rectOffsetX, rectOffsetY) {
+                rotate(degrees = rotation, pivot = Offset(50f, 50f)) {
+                    drawRect(
+                        color = Color.Blue,
+                        topLeft = Offset(0f, 0f),
+                        size = Size(100f, 100f)
+                    )
+                }
             }
-        }}
+        }
     }
-
-
+}
